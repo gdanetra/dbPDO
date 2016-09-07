@@ -1,5 +1,6 @@
 # dbPDO
-My own PDO class
+
+### A simple class for PDO database access ###
 
 I like the php PDO extension: your program can use any database supported by this extension
 
