@@ -1,0 +1,23 @@
+{
+    "name": "gdanetra/dbpdo",
+    "description": "A simple class for PDO database access",
+    "authors": [{
+        "name": "Gustavo D'Anetra",
+        "email": "gdanetra@gmail.com",
+        "role": "Developer"
+    }],
+    "license": "MIT",
+    "keywords": ["pdo", "database"],
+    "homepage": "https://github.com/gdanetra/dbPDO",
+    "require": {
+        "php": ">=5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.8.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "gdanetra\\dbPDO\\": "src/"
+        }
+    }
+}
