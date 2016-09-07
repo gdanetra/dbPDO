@@ -1,4 +1,7 @@
 <?php
+
+namespace gdanetra\dbPDO;
+
 /**
  *
  * dbPDO - my own PDO class
