@@ -2,7 +2,7 @@
 
 ### Status ###
 
-[![Build Status](hhttps://travis-ci.org/gdanetra/dbPDO.svg)]
+[![Build Status](hhttps://travis-ci.org/gdanetra/dbPDO.svg)](https://api.travis-ci.org/gdanetra/dbPDO.svg)
 
 ### A simple class for PDO database access ###
 
