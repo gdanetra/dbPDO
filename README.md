@@ -1,5 +1,9 @@
 # dbPDO
 
+### Status ###
+
+[![Build Status](hhttps://travis-ci.org/gdanetra/dbPDO.svg)]
+
 ### A simple class for PDO database access ###
 
 I like the php PDO extension: your program can use any database supported by this extension
