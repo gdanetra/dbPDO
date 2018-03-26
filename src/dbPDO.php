@@ -1308,7 +1308,8 @@ ORDER BY ORDINAL_POSITION
         $field = $this->camelCase($table);
         $out = $field . ":\n  Type: \"object\"\n";
         if ($table !== $field) {
-          $out .= "  Name: \"${table}\"\n";
+          $out .= "  xml:\n";
+          $out .= "    name: \"${table}\"\n";
         }
         // Required fields
         $txt = "  Required:\n";
