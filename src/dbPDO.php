@@ -27,7 +27,7 @@
  * 1.5.2 - Correct BUG (connection)
  * 1.5.3 - Constant Revision
  * 1.5.4 - select_record Updated
- * 1.5.5 - password_hash()
+ * 1.5.5 - passwordHash()
  * 1.5.6 - Adjust for namespaces
  * 1.5.7 - sql_clause()
  * 1.5.8 - encrypt() and decrypt()
@@ -42,7 +42,7 @@
  * 1.6.8 - executeSelectAll()
  * 1.6.9 - Permit an array of conditions in where parameters
  * 1.7 - Changes array notation to []
- * 1.7.1 - Permit an array of conditions in where parameter for update and delete methods
+ * 1.7.1 - Permit an array of conditions in where parameter for update and delete
  */
 class DbPDO extends \PDO
 {
@@ -93,31 +93,31 @@ class DbPDO extends \PDO
      *
      * @var string
      */
-    public $get_sql = '';
+    public $getSql = '';
     /**
      * Current Page
      *
      * @var string
      */
-    public $get_page = '';
+    public $getPage = '';
     /**
      * Rows limit
      *
      * @var string
      */
-    public $get_limit = '';
+    public $getLimit = '';
     /**
      * Total Pages
      *
      * @var string
      */
-    public $get_total_pages = '';
+    public $getTotalPages = '';
     /**
      * Total rows
      *
      * @var string
      */
-    public $get_total_rows = '';
+    public $getTotalRows = '';
     /**
      * Statement
      *
@@ -844,18 +844,18 @@ class DbPDO extends \PDO
     public function get_records_page($table,$fields,$page,$limit=20,$sidx=1,$sord='asc')
     {
         $tabname = $this->quoteTableName($table);
-        $this->get_total_rows = $this->select_COUNT($tabname,'*');
-        $this->get_limit = $limit;
-        $this->get_page = $page;
-        if ($this->get_total_rows > 0) {
-            $this->get_total_pages = ceil($this->get_total_rows / $this->get_limit);
+        $this->getTotalRows = $this->select_COUNT($tabname,'*');
+        $this->getLimit = $limit;
+        $this->getPage = $page;
+        if ($this->getTotalRows > 0) {
+            $this->getTotalPages = ceil($this->getTotalRows / $this->getLimit);
         } else {
-            $this->get_total_pages = 0;
+            $this->getTotalPages = 0;
         }
-        if ($this->get_page > $this->get_total_pages) {
-            $this->get_page = $this->get_total_pages;
+        if ($this->getPage > $this->getTotalPages) {
+            $this->getPage = $this->getTotalPages;
         }
-        $start = ($this->get_limit * $this->get_page) - $this->get_limit;
+        $start = ($this->getLimit * $this->getPage) - $this->getLimit;
         if ($start < 0) {
             $start = 0;
         }
@@ -1741,7 +1741,7 @@ class DbPDO extends \PDO
      *
      * @return string
      */
-    public function password_hash($pass, $hash = 'sha256', $salt1 = '', $salt2 = '')
+    public function passwordHash($pass, $hash = 'sha256', $salt1 = '', $salt2 = '')
     {
         return hash($hash, $pass.$salt1.$salt2);
     }
