@@ -72,13 +72,13 @@ class DbPDO extends \PDO
     protected $hasActiveTransaction = false;
     /**
      * Schema
-     * 
+     *
      * @var bool
      */
     protected $schema = false;
     /**
      * Catalog
-     * 
+     *
      * @var bool
      */
     protected $catalog = false;
@@ -412,7 +412,7 @@ class DbPDO extends \PDO
     }
 
     /**
-     *! @function sql_clause. 
+     *! @function sql_clause.
      *
      * @abstract Construct an sql statement
      *
@@ -450,227 +450,227 @@ class DbPDO extends \PDO
     */
     public function buildSelect($table,$cols='*',$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        return false;
-      }
-      if (is_array($cols)) {
-        $cols = implode(',',$cols);
-      }
-      if (is_array($where)) {
-        $where = implode(' AND ',$where);
-      }
-      $tabname = $this->quoteTableName($table);
-      $driver = $this->getDriverName();
-      if (!is_array($cols)) {
-        if ($cols === 'map') {
-          $cols = $this->getColumns($table);
-          $sep = '';
-          $columns = '';
-          foreach ($cols as $key => $col) {
-            $columns .= $sep;
-            $val = $col['Map'];
-            switch ($driver) {
-              case 'mysql':
-                $columns .= " `${key}`";
-                break;
-              case 'pgsql':
-                $columns .= "${key}";
-                break;
-              case 'dblib':
-                $columns .= "[${key}]";
-                break;
-              case 'mssql':
-              case 'sqlsrv':
-                $columns .= "[${key}]";
-                break;
-              default:
-                $columns .= "${key}";
-            }
-            if ($val === '') {
-              $val = $key;
-            } elseif ($val === null) {
-              $val = $key;
-            }
-            if ($key !== $val) {
-              $columns .= ' as '.$val;
-            }
-            $sep = ',';
-          }
-        } else {
-          $columns = $cols;
+        if (!is_array($fields)) {
+            return false;
         }
-      } else {
-        $sep = '';
-        $columns = '';
-        foreach ($cols as $key => $val) {
-          $columns .= $sep;
-          switch ($driver) {
-            case 'mysql':
-              $columns .= " `${key}`";
-              break;
-            case 'pgsql':
-              $columns .= "${key}";
-              break;
-            case 'dblib':
-              $columns .= "[${key}]";
-              break;
-            case 'mssql':
-            case 'sqlsrv':
-              $columns .= "[${key}]";
-              break;
-            default:
-              $columns .= "${key}";
-          }
-          if ($val === '') {
-            $val = $key;
-          } elseif ($val === null) {
-            $val = $key;
-          }
-          if ($key !== $val) {
-            $columns .= ' as '.preg_replace('/ /', '_', preg_replace('/-/', '', $val));
-          }
-          $sep = ',';
+        if (is_array($cols)) {
+            $cols = implode(',',$cols);
         }
-      }
-      $sql = "SELECT ${columns} FROM ${tabname}";
-      if (!is_array($fields)) {
-        // NO fields
-        if ($where === null) {
-          // NO where
-        } elseif ($where === false) {
-          // NO where
-        } else {
-          // @todo where array
-          $sql .= ' WHERE ' . $where;
+        if (is_array($where)) {
+            $where = implode(' AND ',$where);
         }
-      } else {
-        if ($where === null) {
-          $sep = 'WHERE';
-        } elseif ($where === false) {
-          $sep = 'WHERE';
-        } else {
-          // @todo where array
-          $sql .= ' WHERE ' . $where;
-          $sep = 'AND';
-        }
-        foreach ($fields as $key => $val) {
-          switch ($driver) {
-            case 'mysql':
-              $field = "`${key}`";
-              break;
-            case 'pgsql':
-              $field = "${key}";
-              break;
-            case 'dblib':
-              //$field = "[${key}] as ".$this->fieldAlias($key);
-              $field = "[${key}]";
-              break;
-            case 'mssql':
-            case 'sqlsrv':
-              $field = "[${key}]";
-              break;
-            default:
-              $field = "${key}";
-          }
-          if ($pos = strpos($val, '%')) {
-            $sql .= " {$sep} {$field} LIKE :${key}";
-          } else {
-            $sql .= " {$sep} {$field} = :${key}";
-          }
-          $sep = 'AND';
-        }
-      }
-      if ($limit) {
-        switch ($driver) {
-          case 'mysql':
-            if ($orderby) {
-              $sql .= " ORDER BY ${orderby}";
-            }
-            $sql .= " LIMIT ${limit}";
-            break;
-          case 'pgsql':
-            if ($orderby) {
-              $sql .= " ORDER BY ${orderby}";
-            }
-            if ($pos = strpos(',', $limit)) {
-              list($start, $count) = explode(',', $limit);
-              $sql .= " LIMIT ${limit} OFFSET ${start}";
-            } else {
-              $sql .= " LIMIT ${limit}";
-            }
-            break;
-          case 'dblib':
-          case 'mssql':
-          case 'sqlsrv':
-            if ($pos = strpos(',', $limit)) {
-              if ($orderby) {
-                if ($pos = strpos(',', $orderby)) {
-                  $orderFields = explode(',', $orderby);
-                  $rorderFields = [];
-                  foreach ($orderFields as  $k => $field) {
-                    if ($i = strpos(' asc', $orderby)) {
-                      $rorderFields[] = preg_replace('/ asc/', ' desc', $field);
-                    } elseif ($j = strpos(' desc', $orderby)) {
-                      $rorderFields[] = preg_replace('/ desc/', ' asc', $field);
-                    } elseif ($i = strpos(' ASC', $orderby)) {
-                      $rorderFields[] = preg_replace('/ ASC/', ' desc', $field);
-                    } elseif ($j = strpos(' DESC', $orderby)) {
-                      $rorderFields[] = preg_replace('/ DESC/', ' asc', $field);
-                    } else {
-                      $orderFields[$k] = $field.' asc';
-                      $rorderFields[] = $field.' desc';
+        $tabname = $this->quoteTableName($table);
+        $driver = $this->getDriverName();
+        if (!is_array($cols)) {
+            if ($cols === 'map') {
+                $cols = $this->getColumns($table);
+                $sep = '';
+                $columns = '';
+                foreach ($cols as $key => $col) {
+                    $columns .= $sep;
+                    $val = $col['Map'];
+                    switch ($driver) {
+                    case 'mysql':
+                        $columns .= " `${key}`";
+                        break;
+                    case 'pgsql':
+                        $columns .= "${key}";
+                        break;
+                    case 'dblib':
+                        $columns .= "[${key}]";
+                        break;
+                    case 'mssql':
+                    case 'sqlsrv':
+                        $columns .= "[${key}]";
+                        break;
+                    default:
+                        $columns .= "${key}";
                     }
-                  }
-                  $orderby = ' ORDER BY '.implode(',', $orderFields);
-                  $rorderby = ' ORDER BY '.implode(',', $rorderFields);
-                } elseif ($i = strpos(' asc', $orderby)) {
-                  $orderby = " ORDER BY ${orderby}";
-                  $rorderby = preg_replace('/ asc/', ' desc', $orderby);
-                } elseif ($j = strpos(' desc', $orderby)) {
-                  $orderby = " ORDER BY ${orderby}";
-                  $rorderby = preg_replace('/ desc/', ' asc', $orderby);
-                } elseif ($i = strpos(' ASC', $orderby)) {
-                  $orderby = " ORDER BY ${orderby}";
-                  $rorderby = preg_replace('/ ASC/', ' desc', $orderby);
-                } elseif ($j = strpos(' DESC', $orderby)) {
-                  $orderby = " ORDER BY ${orderby}";
-                  $rorderby = preg_replace('/ DESC/', ' asc', $orderby);
-                } else {
-                  $rorderby = ' ORDER BY '.$orderby;
-                  $orderby = $rorderby.' asc';
-                  $rorderby = $rorderby.' desc';
+                    if ($val === '') {
+                        $val = $key;
+                    } elseif ($val === null) {
+                        $val = $key;
+                    }
+                    if ($key !== $val) {
+                        $columns .= ' as '.$val;
+                    }
+                    $sep = ',';
                 }
-              } else {
-                $orderby = ' ORDER BY 1 asc';
-                $rorderby = ' ORDER BY 1 desc';
-              }
-              list($start, $count) = explode(',', $limit);
-              $top = $start + $count;
-              $total = $this->executeRecordCount($sql, $fields);
-              if ($top > $total) {
-                $top = $total;
-                $count = $top - $start;
-              }
-              $sql = preg_replace('/SELECT /', "SELECT * FROM (SELECT TOP ${count} * FROM (SELECT TOP ${top} ", $sql)."${orderby}) AS NewTable1 ${rorderby}) AS NewTable2 ${orderby}";
             } else {
-              $sql = preg_replace('/SELECT /', "SELECT TOP ${limit} ", $sql);
-              if ($orderby) {
-                $sql .= " ORDER BY ${orderby}";
-              }
+                $columns = $cols;
             }
-            break;
-          default:
-            if ($orderby) {
-              $sql .= " ORDER BY ${orderby}";
+        } else {
+            $sep = '';
+            $columns = '';
+            foreach ($cols as $key => $val) {
+                $columns .= $sep;
+                switch ($driver) {
+                case 'mysql':
+                    $columns .= " `${key}`";
+                    break;
+                case 'pgsql':
+                    $columns .= "${key}";
+                    break;
+                case 'dblib':
+                    $columns .= "[${key}]";
+                    break;
+                case 'mssql':
+                case 'sqlsrv':
+                    $columns .= "[${key}]";
+                    break;
+                default:
+                    $columns .= "${key}";
+                }
+                if ($val === '') {
+                    $val = $key;
+                } elseif ($val === null) {
+                    $val = $key;
+                }
+                if ($key !== $val) {
+                    $columns .= ' as '.preg_replace('/ /', '_', preg_replace('/-/', '', $val));
+                }
+                $sep = ',';
             }
-            $sql .= " LIMIT ${limit}";
-            break;
         }
-      } elseif ($orderby) {
-        $sql .= " ORDER BY ${orderby}";
-      }
+        $sql = "SELECT ${columns} FROM ${tabname}";
+        if (!is_array($fields)) {
+            // NO fields
+            if ($where === null) {
+                // NO where
+            } elseif ($where === false) {
+                // NO where
+            } else {
+                // @todo where array
+                $sql .= ' WHERE ' . $where;
+            }
+        } else {
+            if ($where === null) {
+                $sep = 'WHERE';
+            } elseif ($where === false) {
+                $sep = 'WHERE';
+            } else {
+                // @todo where array
+                $sql .= ' WHERE ' . $where;
+                $sep = 'AND';
+            }
+            foreach ($fields as $key => $val) {
+                switch ($driver) {
+                case 'mysql':
+                    $field = "`${key}`";
+                    break;
+                case 'pgsql':
+                    $field = "${key}";
+                    break;
+                case 'dblib':
+                    //$field = "[${key}] as ".$this->fieldAlias($key);
+                    $field = "[${key}]";
+                    break;
+                case 'mssql':
+                case 'sqlsrv':
+                    $field = "[${key}]";
+                    break;
+                default:
+                    $field = "${key}";
+                }
+                if ($pos = strpos($val, '%')) {
+                    $sql .= " {$sep} {$field} LIKE :${key}";
+                } else {
+                    $sql .= " {$sep} {$field} = :${key}";
+                }
+                $sep = 'AND';
+            }
+        }
+        if ($limit) {
+            switch ($driver) {
+            case 'mysql':
+                if ($orderby) {
+                  $sql .= " ORDER BY ${orderby}";
+                }
+                $sql .= " LIMIT ${limit}";
+                break;
+            case 'pgsql':
+                if ($orderby) {
+                  $sql .= " ORDER BY ${orderby}";
+                }
+                if ($pos = strpos(',', $limit)) {
+                  list($start, $count) = explode(',', $limit);
+                  $sql .= " LIMIT ${limit} OFFSET ${start}";
+                } else {
+                  $sql .= " LIMIT ${limit}";
+                }
+                break;
+            case 'dblib':
+            case 'mssql':
+            case 'sqlsrv':
+                if ($pos = strpos(',', $limit)) {
+                    if ($orderby) {
+                        if ($pos = strpos(',', $orderby)) {
+                            $orderFields = explode(',', $orderby);
+                            $rorderFields = [];
+                            foreach ($orderFields as  $k => $field) {
+                                if ($i = strpos(' asc', $orderby)) {
+                                    $rorderFields[] = preg_replace('/ asc/', ' desc', $field);
+                                } elseif ($j = strpos(' desc', $orderby)) {
+                                    $rorderFields[] = preg_replace('/ desc/', ' asc', $field);
+                                } elseif ($i = strpos(' ASC', $orderby)) {
+                                    $rorderFields[] = preg_replace('/ ASC/', ' desc', $field);
+                                } elseif ($j = strpos(' DESC', $orderby)) {
+                                    $rorderFields[] = preg_replace('/ DESC/', ' asc', $field);
+                                } else {
+                                    $orderFields[$k] = $field.' asc';
+                                    $rorderFields[] = $field.' desc';
+                                }
+                            }
+                            $orderby = ' ORDER BY '.implode(',', $orderFields);
+                            $rorderby = ' ORDER BY '.implode(',', $rorderFields);
+                        } elseif ($i = strpos(' asc', $orderby)) {
+                            $orderby = " ORDER BY ${orderby}";
+                            $rorderby = preg_replace('/ asc/', ' desc', $orderby);
+                        } elseif ($j = strpos(' desc', $orderby)) {
+                            $orderby = " ORDER BY ${orderby}";
+                            $rorderby = preg_replace('/ desc/', ' asc', $orderby);
+                        } elseif ($i = strpos(' ASC', $orderby)) {
+                            $orderby = " ORDER BY ${orderby}";
+                            $rorderby = preg_replace('/ ASC/', ' desc', $orderby);
+                        } elseif ($j = strpos(' DESC', $orderby)) {
+                            $orderby = " ORDER BY ${orderby}";
+                            $rorderby = preg_replace('/ DESC/', ' asc', $orderby);
+                        } else {
+                            $rorderby = ' ORDER BY '.$orderby;
+                            $orderby = $rorderby.' asc';
+                            $rorderby = $rorderby.' desc';
+                        }
+                    } else {
+                        $orderby = ' ORDER BY 1 asc';
+                        $rorderby = ' ORDER BY 1 desc';
+                    }
+                    list($start, $count) = explode(',', $limit);
+                    $top = $start + $count;
+                    $total = $this->executeRecordCount($sql, $fields);
+                    if ($top > $total) {
+                        $top = $total;
+                        $count = $top - $start;
+                    }
+                    $sql = preg_replace('/SELECT /', "SELECT * FROM (SELECT TOP ${count} * FROM (SELECT TOP ${top} ", $sql)."${orderby}) AS NewTable1 ${rorderby}) AS NewTable2 ${orderby}";
+                } else {
+                    $sql = preg_replace('/SELECT /', "SELECT TOP ${limit} ", $sql);
+                    if ($orderby) {
+                        $sql .= " ORDER BY ${orderby}";
+                    }
+                }
+                break;
+            default:
+                if ($orderby) {
+                    $sql .= " ORDER BY ${orderby}";
+                }
+                $sql .= " LIMIT ${limit}";
+                break;
+            }
+        } elseif ($orderby) {
+            $sql .= " ORDER BY ${orderby}";
+        }
 
-      return $sql;
+        return $sql;
     }
 
     /**
@@ -679,10 +679,10 @@ class DbPDO extends \PDO
      */
     public function select_record($table,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        return false;
-      }
-      return $this->executeSelect($table, '*', $fields, $where, $orderby, $limit);
+        if (!is_array($fields)) {
+            return false;
+        }
+        return $this->executeSelect($table, '*', $fields, $where, $orderby, $limit);
     }
 
     /**
@@ -691,17 +691,17 @@ class DbPDO extends \PDO
      */
     public function executeSelect($table,$cols,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        return false;
-      }
-      if (is_array($cols)) {
-        $cols = implode(',',$cols);
-      }
-      $this->sql = $this->buildSelect($table,$cols,$fields,$where,$orderby,$limit);
-      $this->stmt = $this->prepare($this->sql);
-      $this->stmt->execute($fields);
+        if (!is_array($fields)) {
+            return false;
+        }
+        if (is_array($cols)) {
+            $cols = implode(',',$cols);
+        }
+        $this->sql = $this->buildSelect($table,$cols,$fields,$where,$orderby,$limit);
+        $this->stmt = $this->prepare($this->sql);
+        $this->stmt->execute($fields);
 
-      return $this->stmt->fetch(\PDO::FETCH_ASSOC);
+        return $this->stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
@@ -710,7 +710,7 @@ class DbPDO extends \PDO
      */
     public function executeSelectAll($table,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      return $this->executeSelect($table,'*',$fields,$where,$orderby,$limit);
+        return $this->executeSelect($table,'*',$fields,$where,$orderby,$limit);
     }
 
     /**
@@ -731,20 +731,20 @@ class DbPDO extends \PDO
     */
     public function select_MAX($table,$column,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        $fields = [];
-      }
-      $sql = $this->buildSelect($table,"MAX($column) as mxmum",$fields,$where,$orderby,$limit);
-      $sth = $this->prepare($sql);
-      if (count($fields) > 0) {
-        $sth->execute($fields);
-      } else {
-        $sth->execute();
-      }
-      if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
-        return $row['mxmum'];
-      }
-      return false;
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+        $sql = $this->buildSelect($table,"MAX($column) as mxmum",$fields,$where,$orderby,$limit);
+        $sth = $this->prepare($sql);
+        if (count($fields) > 0) {
+            $sth->execute($fields);
+        } else {
+            $sth->execute();
+        }
+        if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
+            return $row['mxmum'];
+        }
+        return false;
     }
 
     /**
@@ -765,16 +765,16 @@ class DbPDO extends \PDO
     */
     public function select_MIN($table,$column,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        $fields = [];
-      }
-      $sql = $this->buildSelect($table,"MIN($column) as mnmum",$fields,$where,$orderby,$limit);
-      $sth = $this->prepare($sql);
-      $sth->execute($fields);
-      if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
-        return $row['mnmum'];
-      }
-      return false;
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+        $sql = $this->buildSelect($table,"MIN($column) as mnmum",$fields,$where,$orderby,$limit);
+        $sth = $this->prepare($sql);
+        $sth->execute($fields);
+        if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
+            return $row['mnmum'];
+        }
+        return false;
     }
 
     /**
@@ -795,16 +795,16 @@ class DbPDO extends \PDO
     */
     public function select_SUM($table,$column,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        $fields = [];
-      }
-      $sql = $this->buildSelect($table,"SUM($column) as ttal",$fields,$where,$orderby,$limit);
-      $sth = $this->prepare($sql);
-      $sth->execute($fields);
-      if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
-        return $row['ttal'];
-      }
-      return 0.0;
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+        $sql = $this->buildSelect($table,"SUM($column) as ttal",$fields,$where,$orderby,$limit);
+        $sth = $this->prepare($sql);
+        $sth->execute($fields);
+        if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
+            return $row['ttal'];
+        }
+        return 0.0;
     }
 
     /**
@@ -825,16 +825,16 @@ class DbPDO extends \PDO
     */
     public function select_COUNT($table,$column,$fields=[],$where=false,$orderby=false,$limit=false)
     {
-      if (!is_array($fields)) {
-        $fields = [];
-      }
-      $sql = $this->buildSelect($table,"COUNT($column) as ttal",$fields,$where,$orderby,$limit);
-      $sth = $this->prepare($sql);
-      $sth->execute($fields);
-      if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
-        return $row['ttal'];
-      }
-      return 0.0;
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+        $sql = $this->buildSelect($table,"COUNT($column) as ttal",$fields,$where,$orderby,$limit);
+        $sth = $this->prepare($sql);
+        $sth->execute($fields);
+        if ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
+            return $row['ttal'];
+        }
+        return 0.0;
     }
 
     /**
@@ -843,31 +843,31 @@ class DbPDO extends \PDO
      */
     public function get_records_page($table,$fields,$page,$limit=20,$sidx=1,$sord='asc')
     {
-      $tabname = $this->quoteTableName($table);
-      $this->get_total_rows = $this->select_COUNT($tabname,'*');
-      $this->get_limit = $limit;
-      $this->get_page = $page;
-      if ($this->get_total_rows > 0) {
-        $this->get_total_pages = ceil($this->get_total_rows / $this->get_limit);
-      } else {
-        $this->get_total_pages = 0;
-      }
-      if ($this->get_page > $this->get_total_pages) {
-        $this->get_page = $this->get_total_pages;
-      }
-      $start = ($this->get_limit * $this->get_page) - $this->get_limit;
-      if ($start < 0) {
-        $start = 0;
-      }
+        $tabname = $this->quoteTableName($table);
+        $this->get_total_rows = $this->select_COUNT($tabname,'*');
+        $this->get_limit = $limit;
+        $this->get_page = $page;
+        if ($this->get_total_rows > 0) {
+            $this->get_total_pages = ceil($this->get_total_rows / $this->get_limit);
+        } else {
+            $this->get_total_pages = 0;
+        }
+        if ($this->get_page > $this->get_total_pages) {
+            $this->get_page = $this->get_total_pages;
+        }
+        $start = ($this->get_limit * $this->get_page) - $this->get_limit;
+        if ($start < 0) {
+            $start = 0;
+        }
 
-      $sql = $this->buildSelect($table,$cols='*',$fields,false,"{$sidx} {$sord}","{$start},{$limit}");
-      $page = [];
-      $stp = $this->prepare($sql);
-      $stp->execute($fields);
-      while ($row = $stp->fetch(\PDO::FETCH_ASSOC)) {
-        $page[] = $row;
-      }
-      return $page;
+        $sql = $this->buildSelect($table,$cols='*',$fields,false,"{$sidx} {$sord}","{$start},{$limit}");
+        $page = [];
+        $stp = $this->prepare($sql);
+        $stp->execute($fields);
+        while ($row = $stp->fetch(\PDO::FETCH_ASSOC)) {
+            $page[] = $row;
+        }
+        return $page;
     }
 
     /**
@@ -875,11 +875,11 @@ class DbPDO extends \PDO
      */
     public function queryRecordCount($sqlClause)
     {
-      $sqlClause = trim($sqlClause);
-      $sth = parent::query("SELECT count(*) as RecordCount FROM (${sqlClause}) as CntTbl");
-      $row = $sth->fetch(\PDO::FETCH_ASSOC);
+        $sqlClause = trim($sqlClause);
+        $sth = parent::query("SELECT count(*) as RecordCount FROM (${sqlClause}) as CntTbl");
+        $row = $sth->fetch(\PDO::FETCH_ASSOC);
 
-      return $row['RecordCount'];
+        return $row['RecordCount'];
     }
 
     /**
@@ -887,15 +887,15 @@ class DbPDO extends \PDO
      */
     public function executeRecordCount($sqlClause, $data = false)
     {
-      if (!$data) {
-        return $this->queryRecordCount($sqlClause);
-      }
-      $sqlClause = trim($sqlClause);
-      $sth = $this->prepare("SELECT count(*) as RecordCount FROM (${sqlClause}) as CntTbl");
-      $sth->execute($data);
-      $row = $sth->fetch(\PDO::FETCH_ASSOC);
+        if (!$data) {
+            return $this->queryRecordCount($sqlClause);
+        }
+        $sqlClause = trim($sqlClause);
+        $sth = $this->prepare("SELECT count(*) as RecordCount FROM (${sqlClause}) as CntTbl");
+        $sth->execute($data);
+        $row = $sth->fetch(\PDO::FETCH_ASSOC);
 
-      return $row['RecordCount'];
+        return $row['RecordCount'];
     }
 
     /**
@@ -903,8 +903,8 @@ class DbPDO extends \PDO
      */
     public function getDriverName()
     {
-      // return parent::getAttribute(\PDO::ATTR_DRIVER_NAME);
-      return $this->config['db_driver'];
+        // return parent::getAttribute(\PDO::ATTR_DRIVER_NAME);
+        return $this->config['db_driver'];
     }
 
     /**
@@ -914,16 +914,16 @@ class DbPDO extends \PDO
      */
     public function prepare($statement, $options = [])
     {
-      if ($this->config['log_sql']) {
-        $logfile = fopen($this->config['log_filename'], 'a');
-        fwrite($logfile, "${statement}\n");
-        fclose($logfile);
-      }
-      if ($this->config['last_sql']) {
-        $this->config['last_sql_value'] = $statement;
-      }
+        if ($this->config['log_sql']) {
+            $logfile = fopen($this->config['log_filename'], 'a');
+            fwrite($logfile, "${statement}\n");
+            fclose($logfile);
+        }
+        if ($this->config['last_sql']) {
+            $this->config['last_sql_value'] = $statement;
+        }
 
-      return parent::prepare($statement, $options);
+        return parent::prepare($statement, $options);
     }
 
     /**
@@ -931,7 +931,7 @@ class DbPDO extends \PDO
      */
     public function fetchAssoc($stmt)
     {
-      return $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
@@ -941,7 +941,7 @@ class DbPDO extends \PDO
      */
     public function fetchNum($stmt)
     {
-      return $stmt->fetch(\PDO::FETCH_NUM);
+        return $stmt->fetch(\PDO::FETCH_NUM);
     }
 
     /**
@@ -949,7 +949,7 @@ class DbPDO extends \PDO
      */
     private function getBlowfishKey()
     {
-      return '$2a$'.$this->config['db_blowfish'];
+        return '$2a$'.$this->config['db_blowfish'];
     }
 
     /**
@@ -959,7 +959,7 @@ class DbPDO extends \PDO
      */
     public function getCrypt($v = '')
     {
-      return crypt($v, $this->getBlowfishKey());
+        return crypt($v, $this->getBlowfishKey());
     }
 
     /**
@@ -973,16 +973,16 @@ class DbPDO extends \PDO
      */
     public function aesEncrypt($value)
     {
-      $data = [
-        'value' => $value,
-        'salt' => $this->getBlowfishKey(),
-      ];
-      $sql = 'SELECT AES_ENCRYPT( :value, :salt ) as aesEncrypt';
-      $stmt = parent::prepare($sql);
-      $stmt->execute($data);
-      $row = $stmt->fetch(\PDO::FETCH_NUM);
+        $data = [
+          'value' => $value,
+          'salt' => $this->getBlowfishKey(),
+        ];
+        $sql = 'SELECT AES_ENCRYPT( :value, :salt ) as aesEncrypt';
+        $stmt = parent::prepare($sql);
+        $stmt->execute($data);
+        $row = $stmt->fetch(\PDO::FETCH_NUM);
 
-      return base64_encode($row['aesEncrypt']);
+        return base64_encode($row['aesEncrypt']);
     }
 
     /**
@@ -994,16 +994,16 @@ class DbPDO extends \PDO
      */
     public function aesDecrypt($value)
     {
-      $data = [
-        'value' => base64_decode($value),
-        'salt' => $this->getBlowfishKey(),
-      ];
-      $sql = 'SELECT AES_DECRYPT( :value, :salt ) as aesDecrypt';
-      $stmt = parent::prepare($sql);
-      $stmt->execute($data);
-      $row = $stmt->fetch(\PDO::FETCH_NUM);
+        $data = [
+          'value' => base64_decode($value),
+          'salt' => $this->getBlowfishKey(),
+        ];
+        $sql = 'SELECT AES_DECRYPT( :value, :salt ) as aesDecrypt';
+        $stmt = parent::prepare($sql);
+        $stmt->execute($data);
+        $row = $stmt->fetch(\PDO::FETCH_NUM);
 
-      return $row['aesDecrypt'];
+        return $row['aesDecrypt'];
     }
 
     /**
@@ -1016,10 +1016,10 @@ class DbPDO extends \PDO
      */
     public function encrypt($value)
     {
-      $salt = $this->getBlowfishKey();
-      return rawurlencode(base64_encode(openssl_encrypt($value,'AES-256-CBC', md5($salt))));
-      //return rawurlencode(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($salt), $string, MCRYPT_MODE_CBC, md5(md5($salt)))));
-  }
+        $salt = $this->getBlowfishKey();
+        return rawurlencode(base64_encode(openssl_encrypt($value,'AES-256-CBC', md5($salt))));
+        //return rawurlencode(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($salt), $string, MCRYPT_MODE_CBC, md5(md5($salt)))));
+    }
 
     /**
      * @param $value
@@ -1029,9 +1029,9 @@ class DbPDO extends \PDO
      */
     public function decrypt($value)
     {
-      $salt = $this->getBlowfishKey();
-      return rawurlencode(base64_encode(openssl_decrypt($value,'AES-256-CBC', md5($salt))));
-      //return rawurldecode(rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($salt), base64_decode(rawurldecode($string)), MCRYPT_MODE_CBC, md5(md5($salt))), "\0"));
+        $salt = $this->getBlowfishKey();
+        return rawurlencode(base64_encode(openssl_decrypt($value,'AES-256-CBC', md5($salt))));
+        //return rawurldecode(rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($salt), base64_decode(rawurldecode($string)), MCRYPT_MODE_CBC, md5(md5($salt))), "\0"));
     }
 
     /**
@@ -1039,11 +1039,11 @@ class DbPDO extends \PDO
      */
     public function last_prepared_sql()
     {
-      if ($this->config['last_sql']) {
-        return false;
-      }
+        if ($this->config['last_sql']) {
+            return false;
+        }
 
-      return $this->config['last_sql_value'];
+        return $this->config['last_sql_value'];
     }
 
     /**
@@ -1055,13 +1055,13 @@ class DbPDO extends \PDO
     public function beginTransaction()
     {
       if (!$this->inTransaction()) {
-        if ($this->hasActiveTransaction = parent::beginTransaction()) {
-          if ($this->config['log_sql']) {
-            $logfile = fopen($this->config['log_filename'], 'a');
-            fwrite($logfile, ">>> BEGIN TRANSACTION\n");
-            fclose($logfile);
+          if ($this->hasActiveTransaction = parent::beginTransaction()) {
+              if ($this->config['log_sql']) {
+                  $logfile = fopen($this->config['log_filename'], 'a');
+                  fwrite($logfile, ">>> BEGIN TRANSACTION\n");
+                  fclose($logfile);
+              }
           }
-        }
       }
 
       return $this->hasActiveTransaction;
@@ -1074,15 +1074,15 @@ class DbPDO extends \PDO
     */
     public function commit()
     {
-      if ($this->inTransaction()) {
-        parent::commit();
-        if ($this->config['log_sql']) {
-          $logfile = fopen($this->config['log_filename'], 'a');
-          fwrite($logfile, "<<< COMMIT TRANSACTION\n");
-          fclose($logfile);
+        if ($this->inTransaction()) {
+            parent::commit();
+            if ($this->config['log_sql']) {
+                $logfile = fopen($this->config['log_filename'], 'a');
+                fwrite($logfile, "<<< COMMIT TRANSACTION\n");
+                fclose($logfile);
+            }
+            $this->hasActiveTransaction = false;
         }
-        $this->hasActiveTransaction = false;
-      }
     }
 
     /**
@@ -1092,15 +1092,15 @@ class DbPDO extends \PDO
     */
     public function rollback()
     {
-      if ($this->inTransaction()) {
-        parent::rollback();
-        if ($this->config['log_sql']) {
-          $logfile = fopen($this->config['log_filename'], 'a');
-          fwrite($logfile, "<<< ROLLBACK TRANSACTION\n");
-          fclose($logfile);
+        if ($this->inTransaction()) {
+            parent::rollback();
+            if ($this->config['log_sql']) {
+                $logfile = fopen($this->config['log_filename'], 'a');
+                fwrite($logfile, "<<< ROLLBACK TRANSACTION\n");
+                fclose($logfile);
+            }
+            $this->hasActiveTransaction = false;
         }
-        $this->hasActiveTransaction = false;
-      }
     }
 
     /**
@@ -1111,22 +1111,22 @@ class DbPDO extends \PDO
     */
     public function optimizeDataBase()
     {
-      switch ($this->getDriverName()) {
+        switch ($this->getDriverName()) {
         case 'mysql':
-          $dbTables = 'Tables_in_'.$this->dsn['dbname'];
-          $obj = $this->query('SHOW TABLES');
-          $results = $this->results($obj);
-          foreach ($results as $key => $value) {
-            if (isset($value[$dbTables])) {
-              $this->query('REPAIR TABLE '.$value[$dbTables]);
-              $this->query('OPTIMIZE TABLE '.$value[$dbTables]);
-              $this->query('FLUSH TABLE '.$value[$dbTables]);
+            $dbTables = 'Tables_in_'.$this->dsn['dbname'];
+            $obj = $this->query('SHOW TABLES');
+            $results = $this->results($obj);
+            foreach ($results as $key => $value) {
+              if (isset($value[$dbTables])) {
+                $this->query('REPAIR TABLE '.$value[$dbTables]);
+                $this->query('OPTIMIZE TABLE '.$value[$dbTables]);
+                $this->query('FLUSH TABLE '.$value[$dbTables]);
+              }
             }
-          }
-          break;
+            break;
         default:
-          break;
-      }
+            break;
+        }
     }
 
     /**
@@ -1141,16 +1141,16 @@ class DbPDO extends \PDO
     */
     public function insert($tabname, $data)
     {
-      $sth = $this->prepare($this->buildInsert($tabname,$data));
-      $outFields = [];
-      foreach ($data as $key => $val) {
-        if (is_array($val)) {
-          $outFields[$key] = json_encode($val);
-        } else {
-          $outFields[$key] = $val;
+        $sth = $this->prepare($this->buildInsert($tabname,$data));
+        $outFields = [];
+        foreach ($data as $key => $val) {
+            if (is_array($val)) {
+                $outFields[$key] = json_encode($val);
+            } else {
+                $outFields[$key] = $val;
+            }
         }
-      }
-      return $sth->execute($outFields);
+        return $sth->execute($outFields);
     }
 
     /**
@@ -1169,29 +1169,28 @@ class DbPDO extends \PDO
     */
     public function buildInsert($tabname, $data)
     {
-      $table = $this->quoteTableName($tabname);
-      $fieldvalues = ':'.implode(', :', array_keys($data));
-      switch ($this->getDriverName()) {
+        $table = $this->quoteTableName($tabname);
+        $fieldvalues = ':'.implode(', :', array_keys($data));
+        switch ($this->getDriverName()) {
         case 'mysql':
-          $fieldnames = '`'.implode('`, `', array_keys($data)).'`';
-          $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
-          break;
+            $fieldnames = '`'.implode('`, `', array_keys($data)).'`';
+            $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
+            break;
         case 'pgsql':
-          $fieldnames = implode(',', array_keys($data));
-          $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
-          break;
+            $fieldnames = implode(',', array_keys($data));
+            $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
+            break;
         case 'dblib':
         case 'mssql':
         case 'sqlsrv':
-          $fieldnames = '['.implode('], [', array_keys($data)).']';
-          $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
-          break;
+            $fieldnames = '['.implode('], [', array_keys($data)).']';
+            $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
+            break;
         default:
-          $fieldnames = implode(',', array_keys($data));
-          $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
-          break;
-      }
-      return $sql;
+            $fieldnames = implode(',', array_keys($data));
+            $sql = "INSERT INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
+        }
+        return $sql;
     }
 
     /**
@@ -1206,16 +1205,16 @@ class DbPDO extends \PDO
     */
     public function replace($tabname, $data)
     {
-      $sth = $this->prepare($this->buildReplace($tabname,$data));
-      $outFields = [];
-      foreach ($data as $key => $val) {
-        if (is_array($val)) {
-          $outFields[$key] = json_encode($val);
-        } else {
-          $outFields[$key] = $val;
+        $sth = $this->prepare($this->buildReplace($tabname,$data));
+        $outFields = [];
+        foreach ($data as $key => $val) {
+            if (is_array($val)) {
+                $outFields[$key] = json_encode($val);
+            } else {
+                $outFields[$key] = $val;
+            }
         }
-      }
-      return $sth->execute($outFields);
+        return $sth->execute($outFields);
     }
 
     /**
@@ -1235,26 +1234,26 @@ class DbPDO extends \PDO
     */
     public function buildReplace($tabname, $data)
     {
-      $table = $this->quoteTableName($tabname);
-      $fieldvalues = ':'.implode(', :', array_keys($data));
-      switch ($this->getDriverName()) {
+        $table = $this->quoteTableName($tabname);
+        $fieldvalues = ':'.implode(', :', array_keys($data));
+        switch ($this->getDriverName()) {
         case 'mysql':
-          $fieldnames = '`'.implode('`, `', array_keys($data)).'`';
-          break;
+            $fieldnames = '`'.implode('`, `', array_keys($data)).'`';
+            break;
         case 'pgsql':
-          $fieldnames = implode(',', array_keys($data));
-          break;
+            $fieldnames = implode(',', array_keys($data));
+            break;
         case 'dblib':
         case 'mssql':
         case 'sqlsrv':
-          $fieldnames = '['.implode('], [', array_keys($data)).']';
-          break;
+            $fieldnames = '['.implode('], [', array_keys($data)).']';
+            break;
         default:
-          $fieldnames = implode(',', array_keys($data));
-          break;
-      }
-      $sql = "REPLACE INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
-      return $sql;
+            $fieldnames = implode(',', array_keys($data));
+            break;
+        }
+        $sql = "REPLACE INTO ${table} ({$fieldnames}) VALUES ({$fieldvalues})";
+        return $sql;
     }
 
     /**
@@ -1271,60 +1270,60 @@ class DbPDO extends \PDO
     */
     public function update($tabname, $data, $keys, $where=false)
     {
-      $table = $this->quoteTableName($tabname);
-      $setFields = [];
-      $outFields = [];
-      foreach ($data as $key => $val) {
-        switch ($this->getDriverName()) {
-          case 'mysql':
-            $setFields[] = "`${key}`=?";
-            break;
-          case 'pgsql':
-            $setFields[] = "${key}=?";
-            break;
-          case 'dblib':
-          case 'mssql':
-          case 'sqlsrv':
-            $setFields[] = "[${key}]=?";
-            break;
-          default:
-            $setFields[] = "${key}=?";
+        $table = $this->quoteTableName($tabname);
+        $setFields = [];
+        $outFields = [];
+        foreach ($data as $key => $val) {
+            switch ($this->getDriverName()) {
+            case 'mysql':
+                $setFields[] = "`${key}`=?";
+                break;
+            case 'pgsql':
+                $setFields[] = "${key}=?";
+                break;
+            case 'dblib':
+            case 'mssql':
+            case 'sqlsrv':
+                $setFields[] = "[${key}]=?";
+                break;
+            default:
+                $setFields[] = "${key}=?";
+            }
+            if (is_array($val)) {
+                $outFields[] = json_encode($val);
+            } else {
+                $outFields[] = $val;
+            }
         }
-        if (is_array($val)) {
-          $outFields[] = json_encode($val);
-        } else {
-          $outFields[] = $val;
+        if (!is_array($where)) {
+          $where = [];
         }
-      }
-      if (!is_array($where)) {
-        $where = [];
-      }
-      foreach ($keys as $key => $val) {
-        switch ($this->getDriverName()) {
-          case 'mysql':
-            $where[] = "`${key}`=?";
-            break;
-          case 'pgsql':
-            $where[] = "${key}=?";
-            break;
-          case 'dblib':
-          case 'mssql':
-          case 'sqlsrv':
-            $where[] = "[${key}]=?";
-            break;
-          default:
-            $where[] = "${key}=?";
+        foreach ($keys as $key => $val) {
+            switch ($this->getDriverName()) {
+            case 'mysql':
+                $where[] = "`${key}`=?";
+                break;
+            case 'pgsql':
+                $where[] = "${key}=?";
+                break;
+            case 'dblib':
+            case 'mssql':
+            case 'sqlsrv':
+                $where[] = "[${key}]=?";
+                break;
+            default:
+                $where[] = "${key}=?";
+            }
+            if (is_array($val)) {
+                $outFields[] = json_encode($val);
+            } else {
+                $outFields[] = addslashes($val);
+            }
         }
-        if (is_array($val)) {
-          $outFields[] = json_encode($val);
-        } else {
-          $outFields[] = addslashes($val);
-        }
-      }
-      $sql = "UPDATE ${table} SET ".implode(',', $setFields).' WHERE '.implode(' AND ', $where);
-      $sth = $this->prepare($sql);
+        $sql = "UPDATE ${table} SET ".implode(',', $setFields).' WHERE '.implode(' AND ', $where);
+        $sth = $this->prepare($sql);
 
-      return $sth->execute($outFields);
+        return $sth->execute($outFields);
     }
 
     /**
@@ -1340,36 +1339,36 @@ class DbPDO extends \PDO
     */
     public function delete($tabname, $keys, $where=false)
     {
-      $table = $this->quoteTableName($tabname);
-      if (!is_array($where)) {
-        $where = [];
-      }
-      $outFields = [];
-      foreach ($keys as $key => $val) {
-        switch ($this->getDriverName()) {
-          case 'mysql':
-            $where[] = "`${key}`=?";
-            break;
-          case 'pgsql':
-            $where[] = "${key}=?";
-            break;
-          case 'mssql':
-          case 'sqlsrv':
-            $where[] = "[${key}]=?";
-            break;
-          default:
-            $where[] = "${key}=?";
+        $table = $this->quoteTableName($tabname);
+        if (!is_array($where)) {
+            $where = [];
         }
-        if (is_array($val)) {
-          $outFields[] = json_encode($val);
-        } else {
-          $outFields[] = $val;
+        $outFields = [];
+        foreach ($keys as $key => $val) {
+            switch ($this->getDriverName()) {
+            case 'mysql':
+                $where[] = "`${key}`=?";
+                break;
+            case 'pgsql':
+                $where[] = "${key}=?";
+                break;
+            case 'mssql':
+            case 'sqlsrv':
+                $where[] = "[${key}]=?";
+                break;
+            default:
+                $where[] = "${key}=?";
+            }
+            if (is_array($val)) {
+                $outFields[] = json_encode($val);
+            } else {
+                $outFields[] = $val;
+            }
         }
-      }
-      $sql = "DELETE FROM ${table} WHERE ".implode(' AND ', $where);
-      $sth = $this->prepare($sql);
+        $sql = "DELETE FROM ${table} WHERE ".implode(' AND ', $where);
+        $sth = $this->prepare($sql);
 
-      return $sth->execute($outFields);
+        return $sth->execute($outFields);
     }
 
     /**
@@ -1385,20 +1384,20 @@ class DbPDO extends \PDO
     */
     public function tableExists($tabname)
     {
-      $te = false;
-      if (!empty($tabname)) {
-        $name = trim($tabname);
-        $stt = $this->prepare('SHOW TABLES');
-        $stt->execute();
-        while (list($tname) = $stt->fetch(\PDO::FETCH_NUM)) {
-          if (trim($tname) == $name) {
-            $te = true;
-            break;
-          }
+        $te = false;
+        if (!empty($tabname)) {
+            $name = trim($tabname);
+            $stt = $this->prepare('SHOW TABLES');
+            $stt->execute();
+            while (list($tname) = $stt->fetch(\PDO::FETCH_NUM)) {
+                if (trim($tname) == $name) {
+                    $te = true;
+                    break;
+                }
+            }
         }
-      }
 
-      return $te;
+        return $te;
     }
 
     /**
@@ -1411,63 +1410,63 @@ class DbPDO extends \PDO
      **/
     public function getColumns($table,$format=null)
     {
-      $columns = [];
-      switch ($this->getDriverName()) {
+        $columns = [];
+        switch ($this->getDriverName()) {
         case 'mysql':
-          $order = 0;
-          $stmt = parent::query("DESCRIBE `${table}`");
-          while ($col = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $colname = $col['Field'];
-            if ($col['Default'] == 'null') $col['Default']=null;
-            $order++;
-            $data = [
-              'Field' => $colname,
-              'Type' => $col['Type'],
-              'Key' => $col['Key'],
-              'Default' => $col['Default'],
-              'Map' => preg_replace('/ /', '_', preg_replace('/-/', '', $colname)),
-              'Order' => $order,
-              'Required' => true,
-            ];
-            if (is_null($col['Default']) && $col['Null'] == 'YES') $data['Required'] = false;
-            $columns[$colname] = $data;
-          }
-          break;
+            $order = 0;
+            $stmt = parent::query("DESCRIBE `${table}`");
+            while ($col = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $colname = $col['Field'];
+                if ($col['Default'] == 'null') $col['Default']=null;
+                $order++;
+                $data = [
+                  'Field' => $colname,
+                  'Type' => $col['Type'],
+                  'Key' => $col['Key'],
+                  'Default' => $col['Default'],
+                  'Map' => preg_replace('/ /', '_', preg_replace('/-/', '', $colname)),
+                  'Order' => $order,
+                  'Required' => true,
+                ];
+                if (is_null($col['Default']) && $col['Null'] == 'YES') $data['Required'] = false;
+                $columns[$colname] = $data;
+            }
+            break;
         case 'pgsql':
-          if (!$this->catalog) {
-            $this->schema = $this->config['dsn']['dbname'];
-            $stmt = parent::query("SELECT table_catalog as catalog FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '{$this->schema}' AND table_name = '${table}';");
-            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $this->catalog = $row['catalog'];
-          }
-          $order = 0;
-          $stmt = parent::query("SELECT a.attname AS Field, t.typname AS Type FROM pg_database d, pg_namespace n, pg_class c, pg_attribute a, pg_type t WHERE d.datname = '{$this->catalog}' AND n.nspname = '{$this->schema}' AND c.relname = '${table}' AND c.relnamespace = n.oid AND a.attnum > 0 AND not a.attisdropped AND a.attrelid = c.oid AND a.atttypid = t.oid ORDER BY a.attnum");
-          while ($col = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $colname = $col['Field'];
-            $order++;
-            $data = [
-              'Field' => $colname,
-              'Type' => $col['Type'],
-              'Key' => $col['Key'],
-              'Default' => '',
-              'Map' => preg_replace('/ /', '_', preg_replace('/-/', '', $colname)),
-              'Order' => $order,
-              'Required' => true,
-            ];
-            $columns[$colname] = $data;
-          }
-          break;
+            if (!$this->catalog) {
+                $this->schema = $this->config['dsn']['dbname'];
+                $stmt = parent::query("SELECT table_catalog as catalog FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '{$this->schema}' AND table_name = '${table}';");
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                $this->catalog = $row['catalog'];
+            }
+            $order = 0;
+            $stmt = parent::query("SELECT a.attname AS Field, t.typname AS Type FROM pg_database d, pg_namespace n, pg_class c, pg_attribute a, pg_type t WHERE d.datname = '{$this->catalog}' AND n.nspname = '{$this->schema}' AND c.relname = '${table}' AND c.relnamespace = n.oid AND a.attnum > 0 AND not a.attisdropped AND a.attrelid = c.oid AND a.atttypid = t.oid ORDER BY a.attnum");
+            while ($col = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $colname = $col['Field'];
+                $order++;
+                $data = [
+                  'Field' => $colname,
+                  'Type' => $col['Type'],
+                  'Key' => $col['Key'],
+                  'Default' => '',
+                  'Map' => preg_replace('/ /', '_', preg_replace('/-/', '', $colname)),
+                  'Order' => $order,
+                  'Required' => true,
+                ];
+                $columns[$colname] = $data;
+            }
+            break;
         case 'dblib':
         case 'mssql':
         case 'sqlsrv':
-          if (!$this->catalog) {
-            $this->schema = $this->config['dsn']['dbname'];
-            $stmt = parent::query("SELECT table_catalog as catalog FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '{$this->schema}' AND table_name = '${table}';");
-            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $this->catalog = $row['catalog'];
-          }
-          //$stmt = parent::query("SELECT column_name AS Field, data_type AS Type, column_default AS DefaultValue FROM information_schema.columns WHERE table_catalog = '{$this->catalog}' AND table_name = '${table}';");
-          $stmt = parent::query("SELECT COLUMN_NAME AS Field, DATA_TYPE AS Type, is_nullable as [Null], '' as [Key], column_default AS DefaultValue, '' as Extra, ORDINAL_POSITION AS [Order]
+            if (!$this->catalog) {
+                $this->schema = $this->config['dsn']['dbname'];
+                $stmt = parent::query("SELECT table_catalog as catalog FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '{$this->schema}' AND table_name = '${table}';");
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                $this->catalog = $row['catalog'];
+            }
+            //$stmt = parent::query("SELECT column_name AS Field, data_type AS Type, column_default AS DefaultValue FROM information_schema.columns WHERE table_catalog = '{$this->catalog}' AND table_name = '${table}';");
+            $stmt = parent::query("SELECT COLUMN_NAME AS Field, DATA_TYPE AS Type, is_nullable as [Null], '' as [Key], column_default AS DefaultValue, '' as Extra, ORDINAL_POSITION AS [Order]
   FROM information_schema.columns WHERE TABLE_CATALOG = '{$this->catalog}' AND TABLE_NAME = '${table}'
   AND NUMERIC_PRECISION IS NULL AND CHARACTER_MAXIMUM_LENGTH IS NULL
   UNION
@@ -1488,148 +1487,146 @@ class DbPDO extends \PDO
   AND NUMERIC_PRECISION > 0 AND NUMERIC_SCALE > 0 AND CHARACTER_MAXIMUM_LENGTH IS NULL
   ORDER BY ORDINAL_POSITION
   ;");
-          while ($col = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $colname = $col['Field'];
-            $data = [
-              'Field' => $colname,
-              'Type' => $col['Type'],
-              'Key' => $col['Key'],
-              'Default' => $col['Default'],
-              'Map' => preg_replace('/ /', '_', preg_replace('/-/', '', $colname)),
-              'Order' => $col['Order'],
-              'Required' => true,
-            ];
-            $columns[$colname] = $data;
-          }
-          break;
-        default:
-          break;
-      }
+            while ($col = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $colname = $col['Field'];
+                $data = [
+                  'Field' => $colname,
+                  'Type' => $col['Type'],
+                  'Key' => $col['Key'],
+                  'Default' => $col['Default'],
+                  'Map' => preg_replace('/ /', '_', preg_replace('/-/', '', $colname)),
+                  'Order' => $col['Order'],
+                  'Required' => true,
+                ];
+                $columns[$colname] = $data;
+            }
+            break;
+          default:
+            break;
+        }
 
-      switch ($format) {
+        switch ($format) {
         case 'yaml':
-          $field = $this->camelCase($table);
-          $out = $field . ":\n  Type: \"object\"\n";
-          if ($table !== $field) {
-            $out .= "  xml:\n";
-            $out .= "    Name: \"${table}\"\n";
-          }
-          // Required fields
-          $txt = "  Required:\n";
-          $col = [];
-          foreach ($columns as $colname => $data) {
-            switch ($data['Key']) {
-              case 'PRI':
-              case 'MUL':
+            $field = $this->camelCase($table);
+            $out = $field . ":\n  Type: \"object\"\n";
+            if ($table !== $field) {
+              $out .= "  xml:\n";
+              $out .= "    Name: \"${table}\"\n";
+            }
+            // Required fields
+            $txt = "  Required:\n";
+            $col = [];
+            foreach ($columns as $colname => $data) {
+                switch ($data['Key']) {
+                case 'PRI':
+                case 'MUL':
+                    $field = $this->camelCase($data['Field']);
+                    $txt .= "  - ${field}\n";
+                    $col[$field] = $data;
+                    break;
+                default:
+                    if ($data['Required']) {
+                        $field = $this->camelCase($data['Field']);
+                        $txt .= "  - ${field}\n";
+                        $col[$field] = $data;
+                    }
+                }
+            }
+            if (count($col) > 0) {
+                $out .= $txt;
+            }
+            // Fields
+            $out .= "  Properties:\n";
+            $col = [];
+            foreach ($columns as $colname => $data) {
+                //$field = $this->camelCase($data['Field']);
                 $field = $this->camelCase($data['Field']);
-                $txt .= "  - ${field}\n";
-                $col[$field] = $data;
-                break;
-              default:
-                if ($data['Required']) {
-                  $field = $this->camelCase($data['Field']);
-                  $txt .= "  - ${field}\n";
-                  $col[$field] = $data;
+                $out .= "    ${field}:\n";
+                $format = strtolower($data['Type']);
+                $pos = strpos($format,'(');
+                if ($pos > 0) {
+                    $size = preg_replace('/\)/','',preg_replace('/\(/','',substr($format,$pos)));
+                    $type = substr($format,0,$pos);
+                } else {
+                    $size = 0;
+                    $type = $format;
                 }
-                break;
-            }
-          }
-          if (count($col) > 0) {
-            $out .= $txt;
-          }
-          // Fields
-          $out .= "  Properties:\n";
-          $col = [];
-          foreach ($columns as $colname => $data) {
-            //$field = $this->camelCase($data['Field']);
-            $field = $this->camelCase($data['Field']);
-            $out .= "    ${field}:\n";
-            $format = strtolower($data['Type']);
-            $pos = strpos($format,'(');
-            if ($pos > 0) {
-              $size = preg_replace('/\)/','',preg_replace('/\(/','',substr($format,$pos)));
-              $type = substr($format,0,$pos);
-            } else {
-              $size = 0;
-              $type = $format;
-            }
-            switch ($type) {
-              case 'tinyint':
-                $out .= "      type: \"integer\"\n      format: \"int8\"\n";
-                break;
-              case 'smallint':
-                $out .= "      type: \"integer\"\n      format: \"int16\"\n";
-                break;
-              case 'int':
-                $out .= "      type: \"integer\"\n      format: \"int32\"\n";
-                break;
-              case 'bigint':
-                $out .= "      type: \"integer\"\n      format: \"int64\"\n";
-                break;
-              case 'date':
-              case 'datetime':
-              case 'time':
-              case 'year':
-              case 'timestamp':
-                $out .= "      type: \"string\"\n      format: \"${format}\"\n";
-                break;
-              case 'double':
-              case 'float':
-                $out .= "      type: \"numeric\"\n      format: \"${format}\"\n";
-                break;
-              case 'decimal':
-                $out .= "      type: \"numeric\"\n      format: \"${type}\"\n      dimension: \"${size}\"\n";
-                break;
-              case 'char':
-              case 'varchar':
-              case 'tinytext':
-              case 'text':
-              case 'mediumtext':
-              case 'longtext':
-              case 'json':
-                $out .= "      type: \"string\"\n      format: \"${format}\"\n";
-                break;
-              case 'enum':
-              case 'set':
-                $out .= "      type: \"string\"\n      ${type}:\n";
-                $col = preg_replace('/\)/','',preg_replace('/enum\(/','',$format));
-                $col = preg_replace('/\'/','"',$col);
-                $arr = explode(',',$col);
-                foreach ($arr as $txt) {
-                  $out .= "      - $txt\n";
+                switch ($type) {
+                case 'tinyint':
+                    $out .= "      type: \"integer\"\n      format: \"int8\"\n";
+                    break;
+                case 'smallint':
+                    $out .= "      type: \"integer\"\n      format: \"int16\"\n";
+                    break;
+                case 'int':
+                    $out .= "      type: \"integer\"\n      format: \"int32\"\n";
+                    break;
+                case 'bigint':
+                    $out .= "      type: \"integer\"\n      format: \"int64\"\n";
+                    break;
+                case 'date':
+                case 'datetime':
+                case 'time':
+                case 'year':
+                case 'timestamp':
+                    $out .= "      type: \"string\"\n      format: \"${format}\"\n";
+                    break;
+                case 'double':
+                case 'float':
+                    $out .= "      type: \"numeric\"\n      format: \"${format}\"\n";
+                    break;
+                case 'decimal':
+                    $out .= "      type: \"numeric\"\n      format: \"${type}\"\n      dimension: \"${size}\"\n";
+                    break;
+                case 'char':
+                case 'varchar':
+                case 'tinytext':
+                case 'text':
+                case 'mediumtext':
+                case 'longtext':
+                case 'json':
+                    $out .= "      type: \"string\"\n      format: \"${format}\"\n";
+                    break;
+                case 'enum':
+                case 'set':
+                    $out .= "      type: \"string\"\n      ${type}:\n";
+                    $col = preg_replace('/\)/','',preg_replace('/enum\(/','',$format));
+                    $col = preg_replace('/\'/','"',$col);
+                    $arr = explode(',',$col);
+                    foreach ($arr as $txt) {
+                        $out .= "      - $txt\n";
+                    }
+                    break;
+                default:
+                    $out .= "      type: \"${type}\"\n      format: \"${format}\"\n";
                 }
-                break;
-              default:
-                $out .= "      type: \"${type}\"\n      format: \"${format}\"\n";
-                break;
-            }
-            if (!is_null($data['Default'])) {
-              $out .= "      default: \"" . $data['Default'] . "\"\n";
-            }
-            if ($data['Field'] !== $field) {
-              $out .= "      name: \"" . $data['Field'] . "\"\n";
-            }
-            if ($data['Map'] !== $data['Field']) {
-              $out .= "      map: \"" . $data['Map'] . "\"\n";
-            }
+                if (!is_null($data['Default'])) {
+                    $out .= "      default: \"" . $data['Default'] . "\"\n";
+                }
+                if ($data['Field'] !== $field) {
+                    $out .= "      name: \"" . $data['Field'] . "\"\n";
+                }
+                if ($data['Map'] !== $data['Field']) {
+                    $out .= "      map: \"" . $data['Map'] . "\"\n";
+                }
 
-          }
-          return $out;
-          break;
+            }
+            return $out;
+            break;
         case 'migration':
-          $out = '';
-          return json_encode($columns);
-          break;
+            $out = '';
+            return json_encode($columns);
+            break;
         case 'seed':
-          return json_encode($columns);
-          break;
+            return json_encode($columns);
+            break;
         case 'json':
-          return json_encode($columns);
-          break;
+            return json_encode($columns);
+            break;
         default:
-          break;
-      }
-      return $columns;
+            break;
+        }
+        return $columns;
     }
 
     /**
@@ -1645,21 +1642,21 @@ class DbPDO extends \PDO
     */
     public function getPrimaryKey($table)
     {
-      $columns = $this->getColumns($table);
-      $pk = [];
-      foreach ($columns as $colname => $col) {
-        if (strtolower(trim($col['Key'])) == 'pri') {
-          $value = strtolower(trim($value = $col['Default']));
-          if ($value == '(null)') {
-            $value = '';
-          } elseif ($value == 'null') {
-            $value = '';
-          }
-          $pk[$colname] = $value;
+        $columns = $this->getColumns($table);
+        $pk = [];
+        foreach ($columns as $colname => $col) {
+            if (strtolower(trim($col['Key'])) == 'pri') {
+                $value = strtolower(trim($value = $col['Default']));
+                if ($value == '(null)') {
+                    $value = '';
+                } elseif ($value == 'null') {
+                    $value = '';
+                }
+                $pk[$colname] = $value;
+            }
         }
-      }
 
-      return $pk;
+        return $pk;
     }
 
     /**
@@ -1694,39 +1691,39 @@ class DbPDO extends \PDO
      **/
     public function getTables()
     {
-      $tables = [];
-      switch ($this->getDriverName()) {
+        $tables = [];
+        switch ($this->getDriverName()) {
         case 'mysql':
-          $sth = parent::query('SHOW TABLES');
-          while ($row = $sth->fetch(\PDO::FETCH_NUM)) {
-            $tabname = $row[0];
-            $tables[$tabname] = [];
-            $tables[$tabname]['name'] = $tabname;
-            $tables[$tabname]['cols'] = $this->getColumns($tabname);
-          }
-          break;
+            $sth = parent::query('SHOW TABLES');
+            while ($row = $sth->fetch(\PDO::FETCH_NUM)) {
+                $tabname = $row[0];
+                $tables[$tabname] = [];
+                $tables[$tabname]['name'] = $tabname;
+                $tables[$tabname]['cols'] = $this->getColumns($tabname);
+            }
+            break;
         case 'pgsql':
-          $sth = parent::query("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '".$this->config['dsn']['dbname']."';");
-          while ($row = $sth->fetch(\PDO::FETCH_NUM)) {
-            $tabname = $row[0];
-            $tables[$tabname] = [];
-            $tables[$tabname]['name'] = $tabname;
-            $tables[$tabname]['cols'] = $this->getColumns($tabname);
-          }
-          break;
+            $sth = parent::query("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '".$this->config['dsn']['dbname']."';");
+            while ($row = $sth->fetch(\PDO::FETCH_NUM)) {
+                $tabname = $row[0];
+                $tables[$tabname] = [];
+                $tables[$tabname]['name'] = $tabname;
+                $tables[$tabname]['cols'] = $this->getColumns($tabname);
+            }
+            break;
         case 'dblib':
         case 'mssql':
         case 'sqlsrv':
-          $sth = parent::query("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '".$this->config['dsn']['dbname']."';");
-          while ($row = $sth->fetch(\PDO::FETCH_NUM)) {
-            $tabname = $row[0];
-            $tables[$tabname] = [];
-            $tables[$tabname]['name'] = $tabname;
-            $tables[$tabname]['cols'] = $this->getColumns($tabname);
-          }
-          break;
+            $sth = parent::query("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = '".$this->config['dsn']['dbname']."';");
+            while ($row = $sth->fetch(\PDO::FETCH_NUM)) {
+                $tabname = $row[0];
+                $tables[$tabname] = [];
+                $tables[$tabname]['name'] = $tabname;
+                $tables[$tabname]['cols'] = $this->getColumns($tabname);
+            }
+            break;
         default:
-          break;
+            break;
       }
 
       return $tables;
@@ -1746,7 +1743,7 @@ class DbPDO extends \PDO
      */
     public function password_hash($pass, $hash = 'sha256', $salt1 = '', $salt2 = '')
     {
-      return hash($hash, $pass.$salt1.$salt2);
+        return hash($hash, $pass.$salt1.$salt2);
     }
 
     /**
@@ -1759,16 +1756,16 @@ class DbPDO extends \PDO
      */
     public function camelCase($str, $noStrip = [])
     {
-      if (is_array($str)) {
-        $str = implode(' ',$str);
-      }
-      if (!is_string($str)) {
-        return '';
-      }
-      // non-alpha and non-numeric characters become spaces
-      $str = preg_replace('/[^a-z0-9' . implode('', $noStrip) . ']+/i', ' ', $str);
-      // uppercase the first character of each word
-      $str = preg_replace('/ /','',ucwords(trim($str)));
-      return lcfirst($str);
+        if (is_array($str)) {
+            $str = implode(' ',$str);
+        }
+        if (!is_string($str)) {
+            return '';
+          }
+        // non-alpha and non-numeric characters become spaces
+        $str = preg_replace('/[^a-z0-9' . implode('', $noStrip) . ']+/i', ' ', $str);
+        // uppercase the first character of each word
+        $str = preg_replace('/ /','',ucwords(trim($str)));
+        return lcfirst($str);
     }
 }
