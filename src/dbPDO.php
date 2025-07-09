@@ -1,7 +1,4 @@
 <?php
-
-use JetBrains\PhpStorm\NoReturn;
-
 /**
  *
  * dbPDO - my own PDO class
@@ -121,7 +118,7 @@ class dbPDO extends PDO
      * Personalize for your convenience
      *
      */
-    #[NoReturn] public static function exception_handler($exception): void
+    public static function exception_handler($exception): void
     {
         // Output the exception details
         die(LANG_UNCAUGHT_EXCEPTION.$exception->getMessage());
